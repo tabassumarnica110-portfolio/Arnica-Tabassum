@@ -1,0 +1,167 @@
+import React, { useState } from "react";
+import { useApp } from "../../context/AppContext";
+import { X, Flame, Gavel, CheckCircle2, Send, Clock, UserCheck } from "lucide-react";
+
+export const AuctionBiddingModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+  const { auctions, placeAuctionBid, currentUser, lang } = useApp();
+  const auction = auctions[0];
+
+  const [myBidPrice, setMyBidPrice] = useState<number>(32.2);
+  const [myBidQty, setMyBidQty] = useState<number>(4000);
+  const [myMessage, setMyMessage] = useState<string>("আমার খামারে শুকনা ১৩% আর্দ্রতার ব্রি-২৮ ধান প্রস্তুত আছে।");
+  const [bidSubmitted, setBidSubmitted] = useState<boolean>(false);
+
+  const handleSubmitBid = (e: React.FormEvent) => {
+    e.preventDefault();
+    placeAuctionBid(auction.id, myBidPrice, myBidQty, myMessage);
+    setBidSubmitted(true);
+    setTimeout(() => setBidSubmitted(false), 3000);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+      <div className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-stone-200 overflow-hidden my-8">
+        
+        {/* Header */}
+        <div className="bg-stone-900 text-white p-5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-red-600 flex items-center justify-center text-white">
+              <Gavel className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-extrabold text-lg">পাইকারি লাইভ নিলাম ও বিডিং</h3>
+                <span className="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+              </div>
+              <p className="text-xs text-stone-400">
+                Pusher WebSocket রিয়েল-টাইম লাইভ সিঙ্ক
+              </p>
+            </div>
+          </div>
+          <button 
+            onClick={onClose} 
+            className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="p-6 sm:p-8 space-y-6">
+          
+          {/* Auction Overview Box */}
+          <div className="p-5 rounded-2xl bg-amber-500/10 border-2 border-amber-500 text-stone-900 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-[#D97706] uppercase tracking-wider">
+                {auction.buyerName}
+              </span>
+              <span className="text-xs font-mono bg-red-600 text-white px-2 py-0.5 rounded-full font-bold">
+                শেষ সময়: {auction.deadline}
+              </span>
+            </div>
+            <h4 className="font-black text-lg text-stone-900">{auction.title}</h4>
+            <div className="pt-2 flex flex-wrap items-center gap-6 text-xs font-mono">
+              <span>প্রয়োজনীয় পরিমাণ: <strong>{auction.quantityKg} কেজি ({auction.quantityKg / 40} মণ)</strong></span>
+              <span>টার্গেট সর্বোচ্চ দর: <strong>৳{auction.targetPrice}/কেজি</strong></span>
+            </div>
+          </div>
+
+          {/* Live Bids Feed */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between text-xs font-bold text-stone-700">
+              <span>লাইভ বিডসমূহ (সর্বনিম্ন দর বিজয়ী হবে):</span>
+              <span className="text-emerald-700 font-mono">🟢 Live WebSocket Feed</span>
+            </div>
+
+            <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+              {auction.bids.map((b, i) => (
+                <div
+                  key={b.id}
+                  className={`p-3.5 rounded-2xl border text-xs flex items-center justify-between ${
+                    i === 0
+                      ? "bg-emerald-50 border-emerald-300 shadow-xs"
+                      : "bg-white border-stone-200"
+                  }`}
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-stone-900">{b.farmerName}</span>
+                      {i === 0 && (
+                        <span className="px-2 py-0.2 rounded-full bg-emerald-600 text-white text-[10px] font-bold">
+                          শীর্ষ বিডার (Top Bid)
+                        </span>
+                      )}
+                    </div>
+                    {b.message && <p className="text-stone-500 text-[11px] italic">"{b.message}"</p>}
+                    <span className="text-[10px] text-stone-400 font-mono">{b.time}</span>
+                  </div>
+
+                  <div className="text-right">
+                    <span className="text-lg font-black text-[#14532D]">৳{b.price}</span>
+                    <span className="text-[10px] text-stone-500 block">/কেজি ({b.qty} কেজি)</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Place New Bid Form (For Farmers or simulated users) */}
+          <form onSubmit={handleSubmitBid} className="p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-3">
+            <h5 className="text-xs font-bold text-stone-700 uppercase tracking-wider">
+              আপনার প্রস্তাবিত দর ও লট জমা দিন:
+            </h5>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] font-medium text-stone-600 mb-1">দর (৳ প্রতি কেজি):</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  required
+                  value={myBidPrice}
+                  onChange={(e) => setMyBidPrice(Number(e.target.value))}
+                  className="w-full px-3 py-2 rounded-xl border border-stone-300 bg-white text-xs font-bold focus:ring-2 focus:ring-[#14532D] outline-hidden"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-medium text-stone-600 mb-1">সরবরাহ পরিমাণ (কেজি):</label>
+                <input
+                  type="number"
+                  required
+                  value={myBidQty}
+                  onChange={(e) => setMyBidQty(Number(e.target.value))}
+                  className="w-full px-3 py-2 rounded-xl border border-stone-300 bg-white text-xs font-bold focus:ring-2 focus:ring-[#14532D] outline-hidden"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-medium text-stone-600 mb-1">ক্রেতার উদ্দেশ্যে বার্তা:</label>
+              <input
+                type="text"
+                value={myMessage}
+                onChange={(e) => setMyMessage(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl border border-stone-300 bg-white text-xs focus:ring-2 focus:ring-[#14532D] outline-hidden"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="w-full py-3 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs shadow-md transition-colors cursor-pointer"
+            >
+              নিলামে বিড সাবমিট করুন (Pusher Broadcast)
+            </button>
+
+            {bidSubmitted && (
+              <div className="p-2.5 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-bold text-center">
+                ✅ আপনার বিড সফলভাবে রিয়েল-টাইমে তালিকাভুক্ত হয়েছে!
+              </div>
+            )}
+          </form>
+
+        </div>
+
+      </div>
+    </div>
+  );
+};

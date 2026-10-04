@@ -1,0 +1,481 @@
+// KrishiLink PostgreSQL Schema via Supabase / Prisma
+// Complete Production Grade Schema with Relations, Enums, and Indexes
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  FARMER
+  BUYER
+  ADMIN
+}
+
+enum OrderStatus {
+  NEW
+  ACCEPTED
+  PACKED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  DISPUTED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  BKASH
+  NAGAD
+  ROCKET
+  STRIPE
+  SSLCOMMERZ
+  CASH_ON_DELIVERY
+}
+
+enum ProductCategory {
+  DHAN
+  ALU
+  BEGUN
+  POTOL
+  MORICH
+  MACH
+  PEYAJ
+  ROSHUN
+  SHOBJI
+  FOL
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+  SUSPENDED
+}
+
+enum AuctionStatus {
+  ACTIVE
+  CLOSED
+  AWARDED
+  CANCELLED
+}
+
+// ----------------------------------------------------
+// 1. CORE USER & PROFILES (RBAC & Security)
+// ----------------------------------------------------
+
+model User {
+  id                    String             @id @default(uuid())
+  email                 String             @unique
+  phoneNumber           String             @unique
+  passwordHash          String
+  fullName              String
+  role                  Role               @default(BUYER)
+  avatarUrl             String?
+  isVerified            Boolean            @default(false)
+  failedLoginAttempts   Int                @default(0)
+  lockoutUntil          DateTime?
+  lastLoginAt           DateTime?
+  twoFactorEnabled      Boolean            @default(false)
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  farmerProfile         FarmerProfile?
+  buyerProfile          BuyerProfile?
+  addresses             Address[]
+  ordersPlaced          Order[]            @relation("BuyerOrders")
+  reviews               Review[]
+  sentMessages          Message[]          @relation("SentMessages")
+  conversationsAsBuyer  Conversation[]     @relation("BuyerConversations")
+  conversationsAsFarmer Conversation[]     @relation("FarmerConversations")
+  bidsPlaced            Bid[]
+  notifications         Notification[]
+  auditLogs             AuditLog[]
+
+  @@index([email])
+  @@index([phoneNumber])
+  @@index([role])
+}
+
+model FarmerProfile {
+  id                    String             @id @default(uuid())
+  userId                String             @unique
+  user                  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  farmName              String
+  division              String             @default("Mymensingh")
+  district              String             @default("Jamalpur")
+  upazila               String             @default("Jamalpur Sadar")
+  unionName             String?
+  village               String
+  latitude              Float              @default(24.9200)
+  longitude             Float              @default(89.9400)
+  nidNumber             String?            @unique
+  nidFrontUrl           String?
+  nidBackUrl            String?
+  isNidVerified         Boolean            @default(false)
+  verificationStatus    VerificationStatus @default(PENDING)
+  organicCertified      Boolean            @default(false)
+  organicCertUrl        String?
+  rating                Float              @default(4.9)
+  totalRatingsCount     Int                @default(0)
+  totalSalesTaka        Float              @default(0)
+  landSizeAcres         Float?             @default(2.5)
+  bankName              String?
+  bankAccountNumber     String?
+  bkashNumber           String?
+  bio                   String?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  products              Product[]
+  coldStorageBookings   ColdStorageBooking[]
+  diseaseReports        DiseaseReport[]
+
+  @@index([district, upazila])
+  @@index([verificationStatus])
+}
+
+model BuyerProfile {
+  id                    String             @id @default(uuid())
+  userId                String             @unique
+  user                  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  buyerType             String             @default("FAMILY") // FAMILY, RETAILER, WHOLESALER, RESTAURANT
+  organizationName      String?
+  tradeLicenseNumber    String?
+  district              String             @default("Dhaka")
+  preferredLanguage     String             @default("bn")
+  isWholesalerVerified  Boolean            @default(false)
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  auctionsCreated       Auction[]
+
+  @@index([buyerType])
+}
+
+model Address {
+  id                    String             @id @default(uuid())
+  userId                String
+  user                  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label                 String             @default("Delivery") // Home, Warehouse, Shop
+  recipientName         String
+  recipientPhone        String
+  division              String
+  district              String
+  upazila               String
+  streetAddress         String
+  latitude              Float?
+  longitude             Float?
+  isDefault             Boolean            @default(false)
+  createdAt             DateTime           @default(now())
+
+  orders                Order[]
+
+  @@index([userId])
+}
+
+// ----------------------------------------------------
+// 2. PRODUCT CATALOG & QUALITY CONTROL
+// ----------------------------------------------------
+
+model Product {
+  id                    String             @id @default(uuid())
+  farmerId              String
+  farmer                FarmerProfile      @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  name                  String             // e.g., Jamalpur Boro Dhan (BRRI-28)
+  banglaName            String?
+  category              ProductCategory
+  variety               String?
+  quantityAvailableKg   Float
+  minimumOrderKg        Float              @default(5)
+  pricePerKg            Float
+  governmentMarketPrice Float?
+  historicalAvgPrice    Float?
+  harvestDate           DateTime
+  isOrganic             Boolean            @default(false)
+  isQcApproved          Boolean            @default(false)
+  qcInspectorNotes      String?
+  images                String[]           // Array of storage URLs
+  qrCodeToken           String             @unique @default(uuid())
+  traceabilityTimeline  Json?              // Sowing, Fertilizing, Harvesting, Inspection stages
+  description           String?
+  shelfLifeDays         Int                @default(7)
+  district              String             @default("Jamalpur")
+  upazila               String             @default("Jamalpur Sadar")
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  orderItems            OrderItem[]
+  reviews               Review[]
+
+  @@index([farmerId])
+  @@index([category])
+  @@index([district])
+  @@index([isQcApproved])
+  @@index([createdAt])
+}
+
+// ----------------------------------------------------
+// 3. ORDERS, PAYMENTS & LOGISTICS
+// ----------------------------------------------------
+
+model Order {
+  id                    String             @id @default(uuid())
+  orderNumber           String             @unique
+  buyerId               String
+  buyer                 User               @relation("BuyerOrders", fields: [buyerId], references: [id])
+  deliveryAddressId     String
+  deliveryAddress       Address            @relation(fields: [deliveryAddressId], references: [id])
+  status                OrderStatus        @default(NEW)
+  totalItemsAmountTaka  Float
+  deliveryFeeTaka       Float
+  platformCommissionTaka Float             @default(0) // 5% SaaS commission
+  grandTotalTaka        Float
+  distanceKm            Float?
+  trackingTimeline      Json?              // Real-time checkpoints
+  deliveryAgentName     String?
+  deliveryAgentPhone    String?
+  notes                 String?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  orderItems            OrderItem[]
+  payment               Payment?
+
+  @@index([buyerId])
+  @@index([status])
+  @@index([orderNumber])
+}
+
+model OrderItem {
+  id                    String             @id @default(uuid())
+  orderId               String
+  order                 Order              @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId             String
+  product               Product            @relation(fields: [productId], references: [id])
+  quantityKg            Float
+  unitPriceTaka         Float
+  totalPriceTaka        Float
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model Payment {
+  id                    String             @id @default(uuid())
+  orderId               String             @unique
+  order                 Order              @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  amountTaka            Float
+  paymentMethod         PaymentMethod
+  paymentStatus         PaymentStatus      @default(PENDING)
+  transactionId         String?            @unique
+  stripePaymentIntentId String?
+  bkashTrxId            String?
+  tokenizedToken        String?
+  paidAt                DateTime?
+  createdAt             DateTime           @default(now())
+
+  @@index([paymentStatus])
+}
+
+// ----------------------------------------------------
+// 4. REAL-TIME WHOLESALE AUCTIONS & BIDDING
+// ----------------------------------------------------
+
+model Auction {
+  id                    String             @id @default(uuid())
+  buyerProfileId        String
+  buyerProfile          BuyerProfile       @relation(fields: [buyerProfileId], references: [id], onDelete: Cascade)
+  title                 String             // e.g. "Wholesaler 100 Mon Dhan Requirement"
+  category              ProductCategory
+  requiredQuantityKg    Float              // e.g. 4000 kg (100 mon)
+  targetPricePerKg      Float?
+  districtRequired      String             @default("Jamalpur")
+  deadline              DateTime
+  status                AuctionStatus      @default(ACTIVE)
+  winningBidId          String?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  bids                  Bid[]
+
+  @@index([status])
+  @@index([category])
+}
+
+model Bid {
+  id                    String             @id @default(uuid())
+  auctionId             String
+  auction               Auction            @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  farmerId              String
+  farmer                User               @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  bidPricePerKg         Float
+  offeredQuantityKg     Float
+  farmerMessage         String?
+  isAccepted            Boolean            @default(false)
+  createdAt             DateTime           @default(now())
+
+  @@index([auctionId])
+  @@index([farmerId])
+}
+
+// ----------------------------------------------------
+// 5. DIRECT BARGAINING & REAL-TIME CHAT
+// ----------------------------------------------------
+
+model Conversation {
+  id                    String             @id @default(uuid())
+  buyerId               String
+  buyer                 User               @relation("BuyerConversations", fields: [buyerId], references: [id], onDelete: Cascade)
+  farmerId              String
+  farmer                User               @relation("FarmerConversations", fields: [farmerId], references: [id], onDelete: Cascade)
+  productId             String?
+  lastMessageSnippet    String?
+  lastMessageAt         DateTime           @default(now())
+  createdAt             DateTime           @default(now())
+
+  messages              Message[]
+
+  @@unique([buyerId, farmerId, productId])
+}
+
+model Message {
+  id                    String             @id @default(uuid())
+  conversationId        String
+  conversation          Conversation       @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId              String
+  sender                User               @relation("SentMessages", fields: [senderId], references: [id])
+  content               String
+  isPriceOffer          Boolean            @default(false)
+  offerPriceTaka        Float?
+  offerQuantityKg       Float?
+  offerStatus           String?            // PENDING, ACCEPTED, REJECTED, COUNTERED
+  isRead                Boolean            @default(false)
+  createdAt             DateTime           @default(now())
+
+  @@index([conversationId])
+}
+
+// ----------------------------------------------------
+// 6. COLD STORAGE AGGREGATION & BOOKING
+// ----------------------------------------------------
+
+model ColdStorage {
+  id                    String             @id @default(uuid())
+  name                  String             // e.g. "Jamalpur Modern Cold Chain Ltd"
+  division              String             @default("Mymensingh")
+  district              String             @default("Jamalpur")
+  upazila               String             @default("Jamalpur Sadar")
+  address               String
+  latitude              Float              @default(24.9372)
+  longitude             Float              @default(89.9328)
+  totalCapacityMetricTons Float            @default(5000)
+  availableCapacityTons Float              @default(1450)
+  temperatureCelsius    Float              @default(2.5)
+  humidityPercentage    Float              @default(85)
+  ratePerBagPerMonth    Float              @default(110)
+  contactPhone          String
+  managerName           String
+  isActive              Boolean            @default(true)
+  createdAt             DateTime           @default(now())
+
+  bookings              ColdStorageBooking[]
+
+  @@index([district])
+}
+
+model ColdStorageBooking {
+  id                    String             @id @default(uuid())
+  storageId             String
+  storage               ColdStorage        @relation(fields: [storageId], references: [id])
+  farmerId              String
+  farmer                FarmerProfile      @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  cropType              String             // e.g. "Alu (Diamond / Cardinal)"
+  numberOfBags          Int
+  totalWeightKg         Float
+  storageDurationMonths Int                @default(3)
+  totalCostTaka         Float
+  status                String             @default("CONFIRMED") // CONFIRMED, STORED, DISCHARGED
+  bookingDate           DateTime           @default(now())
+
+  @@index([storageId])
+  @@index([farmerId])
+}
+
+// ----------------------------------------------------
+// 7. AI DISEASE DIAGNOSTICS & LOGS
+// ----------------------------------------------------
+
+model DiseaseReport {
+  id                    String             @id @default(uuid())
+  farmerId              String
+  farmer                FarmerProfile      @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  imageUrl              String
+  cropType              String
+  detectedDisease       String             // e.g., "Pata Dhosha Rog (Late Blight)"
+  banglaDiseaseName     String
+  confidenceRate        Float              // e.g. 0.88 (88%)
+  diseaseCause          String             // Chotrak (Phytophthora infestans)
+  prescribedTreatment   String             // 1L panite 2gm Mancozeb mix kore sprey korun
+  preventiveMeasures    String
+  createdAt             DateTime           @default(now())
+
+  @@index([farmerId])
+}
+
+// ----------------------------------------------------
+// 8. SECURITY AUDIT LOGGING & COMPLIANCE
+// ----------------------------------------------------
+
+model AuditLog {
+  id                    String             @id @default(uuid())
+  userId                String?
+  user                  User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action                String             // LOGIN_ATTEMPT, ROLE_EVALUATION, PRODUCT_CREATE, KYC_APPROVE
+  resource              String             // Products, Auth, Users, ColdStorage
+  ipAddress             String
+  userAgent             String?
+  status                String             // SUCCESS, BLOCKED, FAILED
+  details               Json?
+  createdAt             DateTime           @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+model Review {
+  id                    String             @id @default(uuid())
+  productId             String
+  product               Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId                String
+  user                  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating                Int                @default(5)
+  comment               String
+  createdAt             DateTime           @default(now())
+
+  @@index([productId])
+}
+
+model Notification {
+  id                    String             @id @default(uuid())
+  userId                String
+  user                  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title                 String
+  message               String
+  isRead                Boolean            @default(false)
+  type                  String             @default("ORDER") // WEATHER_ALERT, ORDER, BID, CHAT
+  createdAt             DateTime           @default(now())
+
+  @@index([userId])
+}

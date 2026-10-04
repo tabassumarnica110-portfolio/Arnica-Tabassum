@@ -1,0 +1,11 @@
+{
+  "name": "Remix KrishiLink - Smart Direct Farmer-to-Buyer Supply Chain",
+  "description": "Production-grade AgriTech SaaS platform connecting Bangladeshi farmers directly to buyers with AI crop disease detection, live bidding, cold storage booking, price intelligence, and blockchain traceability.",
+  "requestFramePermissions": [
+    "geolocation",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
