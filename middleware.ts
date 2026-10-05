@@ -1,3 +1,4 @@
+// middleware.ts - safe version
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
@@ -6,8 +7,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 }
-git add .
-git commit -m "fix middleware"
-git push origin main
