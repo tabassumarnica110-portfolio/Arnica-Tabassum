@@ -8,3 +8,6 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [],
 }
+git add .
+git commit -m "fix middleware"
+git push origin main
