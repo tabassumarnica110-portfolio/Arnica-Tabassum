@@ -15,6 +15,15 @@ window.addEventListener('unhandledrejection', (event) => {
   event.preventDefault();
 });
 
+// Register Rural Offline Service Worker
+if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch((err) => {
+      console.warn('ServiceWorker registration skipped:', err);
+    });
+  });
+}
+
 createRoot(document.getElementById('root')!).render(
   <ErrorBoundary>
     <App />

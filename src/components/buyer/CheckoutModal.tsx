@@ -274,11 +274,13 @@ export const CheckoutModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
                   নিরাপদ পেমেন্ট গেটওয়ে নির্বাচন করুন:
                 </label>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {[
-                    { id: "BKASH", label: "বিকাশ (bKash)", icon: "📱", badge: "Direct API" },
-                    { id: "NAGAD", label: "নগদ (Nagad)", icon: "⚡", badge: "Instant" },
-                    { id: "STRIPE", label: "Stripe Card", icon: "💳", badge: "Test Mode" },
+                    { id: "KRISHIPAY_ESCROW", label: "KrishiPay স্মার্ট এস্ক্রো", icon: "🛡️", badge: "৩-ধাপে রিলিজ (Safe)" },
+                    { id: "BKASH", label: "বিকাশ মার্চেন্ট (bKash)", icon: "📱", badge: "এসক্রো ভল্ট লক" },
+                    { id: "SSLCOMMERZ", label: "SSLCommerz গেটওয়ে", icon: "🏦", badge: "ব্যাংক / কার্ড এসক্রো" },
+                    { id: "STRIPE", label: "Stripe Card (Global)", icon: "💳", badge: "3D Secure Hold" },
+                    { id: "KRISHIPAY_GROUP_SPLIT", label: "গ্রুপ-বাইয়িং স্প্লিট", icon: "🤝", badge: "বাল্ক পুল (B2B)" },
                     { id: "CASH_ON_DELIVERY", label: "ক্যাশ অন ডেলিভারি", icon: "💵", badge: "COD" },
                   ].map((p) => (
                     <div
@@ -286,16 +288,51 @@ export const CheckoutModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
                       onClick={() => setPaymentMethod(p.id as PaymentMethod)}
                       className={`p-3 rounded-2xl border-2 text-center transition-all cursor-pointer ${
                         paymentMethod === p.id
-                          ? "border-[#14532D] bg-emerald-50 text-[#14532D] font-bold shadow-xs"
+                          ? "border-[#14532D] bg-emerald-50 text-[#14532D] font-bold shadow-xs ring-2 ring-emerald-300"
                           : "border-stone-200 hover:border-stone-300 text-stone-700 bg-white"
                       }`}
                     >
                       <div className="text-xl mb-1">{p.icon}</div>
                       <div className="text-xs font-bold">{p.label}</div>
-                      <span className="text-[10px] text-stone-400 font-mono block mt-0.5">{p.badge}</span>
+                      <span className="text-[10px] text-stone-500 font-mono block mt-0.5">{p.badge}</span>
                     </div>
                   ))}
                 </div>
+
+                {/* Escrow Vault Guarantee Box for bKash / SSLCommerz / Stripe / KrishiPay */}
+                {(paymentMethod === "BKASH" || paymentMethod === "SSLCOMMERZ" || paymentMethod === "STRIPE" || paymentMethod === "KRISHIPAY_ESCROW") && (
+                  <div className="p-4 rounded-2xl bg-emerald-50 border-2 border-emerald-300 text-xs text-emerald-950 space-y-2">
+                    <div className="flex items-center justify-between font-bold text-[#14532D]">
+                      <div className="flex items-center gap-2">
+                        <ShieldCheck className="w-4 h-4 text-emerald-700" />
+                        <span>কৃষিলিঙ্ক নিরাপদ এসক্রো ভল্ট গ্যারান্টি (Escrow Vault Protocol):</span>
+                      </div>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-200 text-emerald-900 font-bold">
+                        {paymentMethod === "BKASH" ? "bKash Merchant Sandbox" : paymentMethod === "SSLCOMMERZ" ? "SSLCommerz Multi-Bank" : paymentMethod === "STRIPE" ? "Stripe Escrow API" : "KrishiPay Smart Escrow"}
+                      </span>
+                    </div>
+                    <p className="text-[11px] leading-relaxed text-emerald-900">
+                      আপনার টাকা সরাসরি কৃষকের কাছে যাবে না। এটি কৃষিলিঙ্কের <strong>নিরাপদ এসক্রো ভল্টে লক থাকবে</strong>। কৃষক জামালপুর থেকে কোল্ড চেইন ট্রাকে ফসল পাঠাবেন। আপনি ফসল হাতে পেয়ে কোয়ালিটি যাচাই করে কনফার্ম করলেই কেবল কৃষকের ওয়ালেটে টাকা তাৎক্ষণিক ট্রান্সফার হবে। কোনো পক্ষেরই প্রতারিত হওয়ার সুযোগ নেই!
+                    </p>
+                  </div>
+                )}
+
+                {/* Group Buying Split Wallet Box */}
+                {paymentMethod === "KRISHIPAY_GROUP_SPLIT" && (
+                  <div className="p-4 rounded-2xl bg-indigo-50 border border-indigo-300 text-xs text-indigo-950 space-y-2">
+                    <div className="flex items-center justify-between font-bold text-indigo-900">
+                      <span className="flex items-center gap-1.5">
+                        <span>🤝 সমবায়ী গ্রুপ-বাইয়িং স্প্লিট পেমেন্ট সক্রিয়:</span>
+                      </span>
+                      <span className="font-mono bg-indigo-200 text-indigo-950 px-2 py-0.5 rounded text-[10px]">
+                        পুল কোড: #GRP-{Math.floor(1000 + Math.random() * 9000)}
+                      </span>
+                    </div>
+                    <p className="text-[11px] leading-relaxed text-indigo-900">
+                      আপনি এবং আপনার সহযোগী ব্যবসায়ীরা মিলে এই অর্ডারের টাকা ভাগ করে দিতে পারবেন। আপনার বর্তমান শেয়ার: <strong>৫০% (৳{(grandTotal * 0.5).toLocaleString()})</strong>। বাকি ৫০% অন্য ক্রেতারা পরিশোধ করলেই পূর্ণ ট্রাকলোড সরবরাহ শুরু হবে।
+                    </p>
+                  </div>
+                )}
 
                 {/* bKash PIN simulator */}
                 {paymentMethod === "BKASH" && (

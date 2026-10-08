@@ -18,6 +18,8 @@ import { TraceabilityQRModal } from "./components/common/TraceabilityQRModal";
 import { AboutDeveloperModal } from "./components/common/AboutDeveloperModal";
 import { InstitutionalRfqModal } from "./components/b2b/InstitutionalRfqModal";
 import { ColdChainTelemetryModal } from "./components/logistics/ColdChainTelemetryModal";
+import { LiveSmsDispatcherModal } from "./components/common/LiveSmsDispatcherModal";
+import { BackendLiveEnginesPortal } from "./components/backend/BackendLiveEnginesPortal";
 
 import { Sprout, Phone, Mail, ExternalLink, Award, GraduationCap, Building2, Radio } from "lucide-react";
 
@@ -71,6 +73,23 @@ const MainContent: React.FC = () => {
 
           <div className="flex items-center gap-2 shrink-0">
             <button
+              onClick={() => setActiveModal("BACKEND_ENGINES_MODAL")}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-amber-500 hover:bg-amber-400 text-stone-950 text-[11px] font-black shadow-xs transition-all cursor-pointer ring-1 ring-amber-300"
+              title="Open Real-time Escrow, Cron SMS, Auction, & AI Vision Testing Engines"
+            >
+              <span>⚡</span>
+              <span>{lang === "bn" ? "লাইভ ইঞ্জিন টেস্ট ল্যাব" : "Live Engine Lab"}</span>
+            </button>
+
+            <button
+              onClick={() => setActiveModal("LIVE_SMS_TEST")}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold shadow-xs transition-colors cursor-pointer ring-1 ring-emerald-400/50"
+            >
+              <Radio className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
+              <span>{lang === "bn" ? "📲 লাইভ এসএমএস টেস্ট ল্যাব" : "📲 Live SMS Test Lab"}</span>
+            </button>
+
+            <button
               onClick={() => setActiveModal("INSTITUTIONAL_RFQ")}
               className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500 hover:bg-amber-400 text-stone-950 text-[11px] font-bold transition-colors cursor-pointer"
             >
@@ -84,14 +103,6 @@ const MainContent: React.FC = () => {
             >
               <Radio className="w-3.5 h-3.5 text-blue-400" />
               <span>ColdLink™ IoT</span>
-            </button>
-
-            <button
-              onClick={() => setActiveModal("ABOUT_DEVELOPER")}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-stone-800 hover:bg-stone-700 text-stone-200 text-[11px] font-medium transition-colors cursor-pointer border border-stone-700"
-            >
-              <GraduationCap className="w-3.5 h-3.5 text-[#FBBF24]" />
-              <span>{lang === "bn" ? "আর্কিটেকচার ও প্রতিষ্ঠাতা" : "Founder & Architecture"}</span>
             </button>
           </div>
         </div>
@@ -153,6 +164,40 @@ const MainContent: React.FC = () => {
       </main>
 
       {/* MODALS RENDERER */}
+      {activeModal === "BACKEND_ENGINES_MODAL" && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-6xl w-full shadow-2xl border border-stone-200 overflow-hidden my-6 max-h-[94vh] flex flex-col font-sans">
+            <div className="bg-stone-900 text-white p-4 sm:p-5 flex items-center justify-between border-b border-stone-800">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-400 text-stone-950 flex items-center justify-center font-black text-lg">
+                  ⚡
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-base sm:text-lg flex items-center gap-2">
+                    <span>লাইভ সিস্টেম ইঞ্জিন ও প্রেজেন্টেশন টেস্ট পোর্টাল</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono">
+                      Real Startup Architecture
+                    </span>
+                  </h3>
+                  <p className="text-xs text-stone-400">
+                    এসক্রো ওয়ালেট ভল্ট · ৩-ঘণ্টার ডিজাস্টার এসএমএস ক্রন · রিভার্স অকশন ওয়েবসকেট · এআই শস্য ডাক্তার
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setActiveModal(null)}
+                className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#FAFAF8]">
+              <BackendLiveEnginesPortal />
+            </div>
+          </div>
+        </div>
+      )}
+
       {activeModal === "PRODUCT_DETAIL" && selectedProductId && (
         <ProductDetailModal
           productId={selectedProductId}
@@ -200,13 +245,17 @@ const MainContent: React.FC = () => {
         <ColdChainTelemetryModal onClose={() => setActiveModal(null)} />
       )}
 
-      {/* FOOTER - OFFICIAL JSTU & ARNICA TABASSUM BRANDING */}
+      {activeModal === "LIVE_SMS_TEST" && (
+        <LiveSmsDispatcherModal onClose={() => setActiveModal(null)} />
+      )}
+
+      {/* FOOTER */}
       <footer className="bg-stone-900 text-stone-400 text-xs border-t border-stone-800 mt-20">
         
-        {/* Professional Incubated By & Founder Accreditation Banner */}
+        {/* Professional Platform Banner */}
         <div className="bg-[#14532D] border-b border-emerald-800 py-3 px-4 text-center">
           <p className="text-emerald-100 text-xs sm:text-sm font-medium">
-            KrishiLink Platform · Incubated at Department of Computer Science & Engineering, <span className="text-white font-semibold">Jamalpur Science And Technology University (JSTU)</span> · Founder & Lead Architect: <span className="text-[#FBBF24] font-semibold">Arnica Tabassum</span>
+            KrishiLink Platform · Smart Direct Farmer-to-Buyer Supply Chain & Marketplace for Bangladesh
           </p>
         </div>
 
@@ -225,7 +274,7 @@ const MainContent: React.FC = () => {
                 Eliminating middlemen cartels with AI vision, cold chain logistics, and blockchain traceability.
               </p>
               <div className="text-[11px] font-mono text-emerald-400">
-                Incubated in Jamalpur & Dhaka | Smart AgriTech Platform
+                Jamalpur & Dhaka Agri Hubs | Smart AgriTech Platform
               </div>
             </div>
 
@@ -245,7 +294,7 @@ const MainContent: React.FC = () => {
               </p>
               <p className="text-xs flex items-center gap-1.5 text-stone-300">
                 <Mail className="w-3.5 h-3.5 text-amber-500" />
-                <span>Executive Support: tabassumarnica110@gmail.com</span>
+                <span>Official Support: support@krishilink.gov.bd</span>
               </p>
               <p className="text-[11px] text-stone-500 pt-2">
                 Certified by Department of Agricultural Extension (DAE) Bangladesh.
@@ -255,8 +304,21 @@ const MainContent: React.FC = () => {
           </div>
 
           <div className="pt-8 border-t border-stone-800 flex flex-wrap items-center justify-between text-xs text-stone-500 gap-4">
-            <div>
-              &copy; {new Date().getFullYear()} KrishiLink AgriTech Limited. All Rights Reserved. Crafted by <span className="text-emerald-400 font-semibold">Arnica Tabassum</span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span>&copy; {new Date().getFullYear()} KrishiLink AgriTech Limited. All Rights Reserved.</span>
+              <span className="text-stone-300 font-medium">
+                Crafted & Developed by{" "}
+                <button 
+                  onClick={() => setActiveModal("ABOUT_DEVELOPER")} 
+                  className="text-emerald-400 font-bold hover:underline cursor-pointer"
+                  title="View Lead Architect Credentials & JSTU Profile"
+                >
+                  Arnica Tabassum
+                </button>
+              </span>
+              <span className="text-stone-500 font-mono text-[11px]">
+                (Dept. of CSE, Jamalpur Science And Technology University - JSTU)
+              </span>
             </div>
             <div className="flex items-center gap-4">
               <span>Privacy Policy</span>
@@ -264,8 +326,6 @@ const MainContent: React.FC = () => {
               <span>Terms of Service</span>
               <span>•</span>
               <span>Dispute Protocol</span>
-              <span>•</span>
-              <span className="font-mono text-emerald-500">System Status: 100% Operational</span>
             </div>
           </div>
         </div>

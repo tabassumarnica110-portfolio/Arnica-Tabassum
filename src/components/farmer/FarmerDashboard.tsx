@@ -3,8 +3,15 @@ import { useApp } from "../../context/AppContext";
 import { ProductCategory, OrderStatus } from "../../types";
 import { DiseaseDetector } from "./DiseaseDetector";
 import { WeatherAlertBanner } from "./WeatherAlertBanner";
+import { ClimateRiskAlert } from "./ClimateRiskAlert";
 import { YieldForecaster } from "./YieldForecaster";
 import { RegionalPestMap } from "./RegionalPestMap";
+import { ColdChainRouteVisualizer } from "./ColdChainRouteVisualizer";
+import { SeasonalFarmingGuidance } from "./SeasonalFarmingGuidance";
+import { SmartPestManager } from "./SmartPestManager";
+import { SoilHealthLog } from "./SoilHealthLog";
+import { KrishiPayWalletHub } from "../wallet/KrishiPayWalletHub";
+import { BackendLiveEnginesPortal } from "../backend/BackendLiveEnginesPortal";
 import { 
   CloudRain, 
   Mic, 
@@ -29,7 +36,15 @@ import {
   Building2,
   Radio,
   ShieldCheck,
-  Radar
+  ShieldAlert,
+  Radar,
+  Truck,
+  BookOpen,
+  Bug,
+  Search,
+  Server,
+  FlaskConical,
+  Gavel
 } from "lucide-react";
 
 export const FarmerDashboard: React.FC = () => {
@@ -46,8 +61,12 @@ export const FarmerDashboard: React.FC = () => {
 
   // Tab state within farmer portal
   const [activeSubTab, setActiveSubTab] = useState<
-    "OVERVIEW" | "YIELD_FORECAST" | "PEST_MAP" | "DISEASE_VISION" | "ADD_PRODUCT" | "ORDERS_KANBAN" | "INVENTORY" | "WALLET"
+    "OVERVIEW" | "BACKEND_ENGINES" | "CLIMATE_ALERT" | "SOIL_HEALTH" | "COLD_CHAIN_ROUTE" | "SEASONAL_GUIDE" | "SMART_PEST" | "YIELD_FORECAST" | "PEST_MAP" | "DISEASE_VISION" | "ADD_PRODUCT" | "ORDERS_KANBAN" | "INVENTORY" | "WALLET"
   >("OVERVIEW");
+
+  // Hands-free Voice Search & Input State
+  const [activeVoiceField, setActiveVoiceField] = useState<string | null>(null);
+  const [inventorySearchQuery, setInventorySearchQuery] = useState<string>("");
 
   // KrishiPay Wallet state
   const [walletBalance, setWalletBalance] = useState(12450);
@@ -73,16 +92,43 @@ export const FarmerDashboard: React.FC = () => {
   // Live stock alert
   const lowStockItem = products.find((p) => p.farmerId === currentUser.id && p.quantityKg < 100);
 
-  // Web Speech API Voice Input
-  const handleVoiceInput = () => {
+  // Web Speech API Voice-to-Text Input supporting all form fields & search
+  const handleVoiceInputForField = (field: "ALL" | "SEARCH" | "NAME" | "VARIETY" | "QUANTITY" | "PRICE" | "MIN_ORDER" | "DESCRIPTION") => {
+    setActiveVoiceField(field);
+
     if (!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)) {
       // Graceful fallback simulation if browser Web Speech is unavailable
-      setVoiceTranscript("৫০ কেজি আলু ৩০ টাকা");
-      setName("Diamond Potato (Alu)");
-      setBanglaName("টাটকা ডায়মন্ড আলু");
-      setCategory("ALU");
-      setQuantityKg(50);
-      setPricePerKg(30);
+      if (field === "SEARCH") {
+        setInventorySearchQuery("আলু");
+        setVoiceTranscript("আলু (সার্চ ফিল্টার)");
+      } else if (field === "NAME") {
+        setBanglaName("টাটকা ডায়মন্ড আলু");
+        setName("Fresh Diamond Potato");
+        setVoiceTranscript("টাটকা ডায়মন্ড আলু");
+      } else if (field === "VARIETY") {
+        setVariety("বারি আলু-৭ (ডায়মন্ড গ্রেড-১)");
+        setVoiceTranscript("বারি আলু-৭ ডায়মন্ড");
+      } else if (field === "QUANTITY") {
+        setQuantityKg(500);
+        setVoiceTranscript("৫০০ কেজি");
+      } else if (field === "PRICE") {
+        setPricePerKg(32);
+        setVoiceTranscript("৩২ টাকা");
+      } else if (field === "MIN_ORDER") {
+        setMinOrderKg(25);
+        setVoiceTranscript("২৫ কেজি");
+      } else if (field === "DESCRIPTION") {
+        setDescription("জামালপুর চরাঞ্চলের বিষমুক্ত প্রাকৃতিক কম্পোস্ট সার দিয়ে চাষকৃত এ+ গ্রেড টাটকা ফসল।");
+        setVoiceTranscript("বিষমুক্ত টাটকা ফসল");
+      } else {
+        setVoiceTranscript("৫০ কেজি আলু ৩০ টাকা");
+        setName("Diamond Potato (Alu)");
+        setBanglaName("টাটকা ডায়মন্ড আলু");
+        setCategory("ALU");
+        setQuantityKg(50);
+        setPricePerKg(30);
+      }
+      setTimeout(() => setActiveVoiceField(null), 1000);
       return;
     }
 
@@ -93,57 +139,91 @@ export const FarmerDashboard: React.FC = () => {
 
     recognition.onstart = () => {
       setIsListening(true);
-      setVoiceTranscript(lang === "bn" ? "শুনছি... বলুন: যেমন '৫০ কেজি আলু ৩০ টাকা'" : "Listening in Bangla...");
+      setVoiceTranscript("শুনছি... মুখে বাংলায় বলুন");
     };
 
     recognition.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript;
       setVoiceTranscript(transcript);
       setIsListening(false);
+      setActiveVoiceField(null);
 
-      // Intelligent parser for Bangla agri voice input:
-      // "৫০ কেজি আলু ৩০ টাকা" -> 50kg, potato, 30 taka
-      if (transcript.includes("আলু")) {
-        setCategory("ALU");
-        setName("Fresh Diamond Potato");
-        setBanglaName("টাটকা ডায়মন্ড আলু");
-      } else if (transcript.includes("ধান")) {
-        setCategory("DHAN");
-        setName("Jamalpur Boro Dhan");
-        setBanglaName("জামালপুর বোরো ধান");
-      } else if (transcript.includes("মরিচ")) {
-        setCategory("MORICH");
-        setName("Hot Red Chili");
-        setBanglaName("মেলান্দহের শুকনা মরিচ");
-      } else if (transcript.includes("বেগুন")) {
-        setCategory("BEGUN");
-        setName("Deshi Gol Begun");
-        setBanglaName("দেশি গোল বেগুন");
-      }
+      // Populate based on specific targeted field
+      if (field === "SEARCH") {
+        setInventorySearchQuery(transcript);
+      } else if (field === "NAME") {
+        setBanglaName(transcript);
+        if (!name) setName(transcript);
+      } else if (field === "VARIETY") {
+        setVariety(transcript);
+      } else if (field === "DESCRIPTION") {
+        setDescription(transcript);
+      } else if (field === "QUANTITY") {
+        const nums = transcript.match(/\d+/g);
+        if (nums && nums.length > 0) {
+          setQuantityKg(Number(nums[0]));
+        } else {
+          setQuantityKg(100);
+        }
+      } else if (field === "PRICE") {
+        const nums = transcript.match(/\d+/g);
+        if (nums && nums.length > 0) {
+          setPricePerKg(Number(nums[0]));
+        } else {
+          setPricePerKg(35);
+        }
+      } else if (field === "MIN_ORDER") {
+        const nums = transcript.match(/\d+/g);
+        if (nums && nums.length > 0) {
+          setMinOrderKg(Number(nums[0]));
+        }
+      } else {
+        // Universal parser for quick crop listing
+        if (transcript.includes("আলু")) {
+          setCategory("ALU");
+          setName("Fresh Diamond Potato");
+          setBanglaName("টাটকা ডায়মন্ড আলু");
+        } else if (transcript.includes("ধান")) {
+          setCategory("DHAN");
+          setName("Jamalpur Boro Dhan");
+          setBanglaName("জামালপুর বোরো ধান");
+        } else if (transcript.includes("মরিচ")) {
+          setCategory("MORICH");
+          setName("Hot Red Chili");
+          setBanglaName("মেলান্দহের শুকনা মরিচ");
+        } else if (transcript.includes("বেগুন")) {
+          setCategory("BEGUN");
+          setName("Deshi Gol Begun");
+          setBanglaName("দেশি গোল বেগুন");
+        }
 
-      // Extract numbers
-      const numbers = transcript.match(/\d+/g);
-      if (numbers && numbers.length >= 1) {
-        setQuantityKg(Number(numbers[0]));
-      }
-      if (numbers && numbers.length >= 2) {
-        setPricePerKg(Number(numbers[1]));
+        const numbers = transcript.match(/\d+/g);
+        if (numbers && numbers.length >= 1) {
+          setQuantityKg(Number(numbers[0]));
+        }
+        if (numbers && numbers.length >= 2) {
+          setPricePerKg(Number(numbers[1]));
+        }
       }
     };
 
     recognition.onerror = () => {
       setIsListening(false);
-      // fallback preset
-      setName("Fresh Diamond Potato");
-      setBanglaName("টাটকা ডায়মন্ড আলু");
-      setCategory("ALU");
-      setQuantityKg(50);
-      setPricePerKg(30);
-      setVoiceTranscript("৫০ কেজি আলু ৩০ টাকা (ভয়েস অটোফিল সম্পন্ন)");
+      setActiveVoiceField(null);
+      if (field === "ALL") {
+        setName("Fresh Diamond Potato");
+        setBanglaName("টাটকা ডায়মন্ড আলু");
+        setCategory("ALU");
+        setQuantityKg(50);
+        setPricePerKg(30);
+        setVoiceTranscript("৫০ কেজি আলু ৩০ টাকা (ভয়েস অটোফিল সম্পন্ন)");
+      }
     };
 
     recognition.start();
   };
+
+  const handleVoiceInput = () => handleVoiceInputForField("ALL");
 
   const handleCreateProduct = (e: React.FormEvent) => {
     e.preventDefault();
@@ -244,6 +324,53 @@ export const FarmerDashboard: React.FC = () => {
             <span>{lang === "bn" ? "দরদাম চ্যাট (১)" : "Bargaining (1)"}</span>
           </button>
         </div>
+
+        {/* Universal Hands-free Voice Search Bar in Header */}
+        <div className="w-full pt-4 mt-2 border-t border-white/15 flex flex-wrap items-center justify-between gap-4">
+          <div className="relative flex-1 max-w-2xl">
+            <Search className="w-4 h-4 text-stone-300 absolute left-4 top-3" />
+            <input
+              type="text"
+              placeholder="খামারের ফসল বা মজুদ খুঁজুন (মুখে বলতে ডানপাশের মাইকে চাপ দিন)..."
+              value={inventorySearchQuery}
+              onChange={(e) => {
+                setInventorySearchQuery(e.target.value);
+                if (activeSubTab !== "INVENTORY") setActiveSubTab("INVENTORY");
+              }}
+              className="w-full pl-11 pr-24 py-2.5 rounded-2xl bg-white/15 hover:bg-white/20 border border-white/30 text-white placeholder-stone-200 text-xs sm:text-sm font-medium focus:bg-white/25 focus:outline-hidden focus:ring-2 focus:ring-[#FBBF24] transition-all"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                if (activeSubTab !== "INVENTORY") setActiveSubTab("INVENTORY");
+                handleVoiceInputForField("SEARCH");
+              }}
+              className={`absolute right-1.5 top-1 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-sm ${
+                activeVoiceField === "SEARCH" && isListening
+                  ? "bg-red-600 text-white animate-pulse"
+                  : "bg-[#FBBF24] hover:bg-amber-400 text-stone-950"
+              }`}
+              title="ভয়েসে মুখে বলে খুঁজুন"
+            >
+              {activeVoiceField === "SEARCH" && isListening ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
+              <span className="text-[11px] font-bold">{activeVoiceField === "SEARCH" && isListening ? "শুনছি..." : "মাইক সার্চ"}</span>
+            </button>
+          </div>
+
+          {inventorySearchQuery && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-amber-300 font-bold bg-black/20 px-2.5 py-1 rounded-lg">
+                সার্চ ফিল্টার: "{inventorySearchQuery}"
+              </span>
+              <button
+                onClick={() => setInventorySearchQuery("")}
+                className="text-xs underline text-stone-200 hover:text-white cursor-pointer"
+              >
+                মুছে ফেলুন
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* 2. THREE KEY WIDGETS FOR LOW-LITERATE FARMERS */}
@@ -308,10 +435,10 @@ export const FarmerDashboard: React.FC = () => {
 
       </div>
 
-      {/* 3. WEATHER FORECAST & RED ALERT BANNER (JAMALPUR REGION - OpenWeather Grounded) */}
-      <WeatherAlertBanner />
+      {/* 3. CLIMATE RISK ALERT & REGIONAL DISASTER RADAR (OpenWeather Grounded) */}
+      <ClimateRiskAlert />
 
-      {/* 4. SUB-TABS: OVERVIEW | YIELD FORECAST | PEST RADAR | DISEASE VISION | ADD PRODUCT | ORDERS | INVENTORY | WALLET */}
+      {/* 4. SUB-TABS: OVERVIEW | CLIMATE ALERT | LOGISTICS | SEASONS | IPM | YIELD | PESTS | VISION | ADD PRODUCT | ORDERS | INVENTORY | WALLET */}
       <div className="flex items-center gap-2 border-b border-stone-200 pb-2 overflow-x-auto">
         <button
           onClick={() => setActiveSubTab("OVERVIEW")}
@@ -325,6 +452,66 @@ export const FarmerDashboard: React.FC = () => {
         </button>
 
         <button
+          onClick={() => setActiveSubTab("CLIMATE_ALERT")}
+          className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap cursor-pointer transition-colors flex items-center gap-1.5 ${
+            activeSubTab === "CLIMATE_ALERT"
+              ? "bg-red-700 text-white shadow-xs animate-pulse"
+              : "text-red-700 hover:bg-red-50"
+          }`}
+        >
+          <ShieldAlert className="w-3.5 h-3.5" />
+          <span>🚨 জলবায়ু দুর্যোগ সতর্কতা</span>
+        </button>
+
+        <button
+          onClick={() => setActiveSubTab("SOIL_HEALTH")}
+          className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap cursor-pointer transition-colors flex items-center gap-1.5 ${
+            activeSubTab === "SOIL_HEALTH"
+              ? "bg-[#14532D] text-white shadow-xs"
+              : "text-stone-600 hover:bg-stone-100"
+          }`}
+        >
+          <FlaskConical className="w-3.5 h-3.5 text-emerald-400" />
+          <span>🧪 মাটির স্বাস্থ্য লগ (Soil Health)</span>
+        </button>
+
+        <button
+          onClick={() => setActiveSubTab("COLD_CHAIN_ROUTE")}
+          className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap cursor-pointer transition-colors flex items-center gap-1.5 ${
+            activeSubTab === "COLD_CHAIN_ROUTE"
+              ? "bg-[#14532D] text-white shadow-xs"
+              : "text-stone-600 hover:bg-stone-100"
+          }`}
+        >
+          <Truck className="w-3.5 h-3.5 text-cyan-400" />
+          <span>🚚 কোল্ড চেইন রুট</span>
+        </button>
+
+        <button
+          onClick={() => setActiveSubTab("SEASONAL_GUIDE")}
+          className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap cursor-pointer transition-colors flex items-center gap-1.5 ${
+            activeSubTab === "SEASONAL_GUIDE"
+              ? "bg-[#14532D] text-white shadow-xs"
+              : "text-stone-600 hover:bg-stone-100"
+          }`}
+        >
+          <BookOpen className="w-3.5 h-3.5 text-emerald-400" />
+          <span>🌱 মৌসুমি সার ক্যালেন্ডার</span>
+        </button>
+
+        <button
+          onClick={() => setActiveSubTab("SMART_PEST")}
+          className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap cursor-pointer transition-colors flex items-center gap-1.5 ${
+            activeSubTab === "SMART_PEST"
+              ? "bg-[#14532D] text-white shadow-xs"
+              : "text-stone-600 hover:bg-stone-100"
+          }`}
+        >
+          <Bug className="w-3.5 h-3.5 text-amber-400" />
+          <span>🛡️ স্মার্ট বালাই ব্যবস্থাপনা</span>
+        </button>
+
+        <button
           onClick={() => setActiveSubTab("YIELD_FORECAST")}
           className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap cursor-pointer transition-colors flex items-center gap-1.5 ${
             activeSubTab === "YIELD_FORECAST"
@@ -333,7 +520,7 @@ export const FarmerDashboard: React.FC = () => {
           }`}
         >
           <TrendingUp className="w-3.5 h-3.5 text-[#FBBF24]" />
-          <span>📈 ফলন পূর্বাভাস (Yield Forecast)</span>
+          <span>📈 ফলন পূর্বাভাস</span>
         </button>
 
         <button
@@ -404,6 +591,18 @@ export const FarmerDashboard: React.FC = () => {
           <Wallet className="w-3.5 h-3.5" />
           <span>💳 কৃষি-পে ওয়ালেট</span>
         </button>
+
+        <button
+          onClick={() => setActiveSubTab("BACKEND_ENGINES")}
+          className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap cursor-pointer transition-colors flex items-center gap-1.5 ${
+            activeSubTab === "BACKEND_ENGINES"
+              ? "bg-amber-500 text-stone-950 shadow-xs ring-2 ring-amber-300 font-black"
+              : "text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200"
+          }`}
+        >
+          <Server className="w-3.5 h-3.5 text-amber-600" />
+          <span>⚡ লাইভ ইঞ্জিন টেস্ট পোর্টাল</span>
+        </button>
       </div>
 
       {/* TAB 1: ADD PRODUCT WITH SMART PRICE & BANGLA VOICE */}
@@ -444,7 +643,22 @@ export const FarmerDashboard: React.FC = () => {
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-stone-700 mb-1">ফসলের নাম (বাংলায়):</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-bold text-stone-700">ফসলের নাম (বাংলায়):</label>
+                  <button
+                    type="button"
+                    onClick={() => handleVoiceInputForField("NAME")}
+                    className={`px-2 py-0.5 rounded-lg text-[11px] font-bold flex items-center gap-1 cursor-pointer transition-all ${
+                      activeVoiceField === "NAME" && isListening
+                        ? "bg-red-600 text-white animate-pulse"
+                        : "bg-amber-100 hover:bg-amber-200 text-amber-900"
+                    }`}
+                    title="মুখে বাংলায় নাম বলুন"
+                  >
+                    <Mic className="w-3 h-3 text-[#D97706]" />
+                    <span>ভয়েস</span>
+                  </button>
+                </div>
                 <input
                   type="text"
                   required
@@ -479,7 +693,22 @@ export const FarmerDashboard: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-bold text-stone-700 mb-1">মোট পরিমাণ (কেজি):</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-bold text-stone-700">মোট পরিমাণ (কেজি):</label>
+                  <button
+                    type="button"
+                    onClick={() => handleVoiceInputForField("QUANTITY")}
+                    className={`px-2 py-0.5 rounded-lg text-[11px] font-bold flex items-center gap-1 cursor-pointer transition-all ${
+                      activeVoiceField === "QUANTITY" && isListening
+                        ? "bg-red-600 text-white animate-pulse"
+                        : "bg-amber-100 hover:bg-amber-200 text-amber-900"
+                    }`}
+                    title="মুখে পরিমাণ বলুন"
+                  >
+                    <Mic className="w-3 h-3 text-[#D97706]" />
+                    <span>ভয়েস</span>
+                  </button>
+                </div>
                 <input
                   type="number"
                   required
@@ -494,7 +723,22 @@ export const FarmerDashboard: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-stone-700 mb-1">আপনার চাওয়া দাম (৳/কেজি):</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-bold text-stone-700">আপনার চাওয়া দাম (৳/কেজি):</label>
+                  <button
+                    type="button"
+                    onClick={() => handleVoiceInputForField("PRICE")}
+                    className={`px-2 py-0.5 rounded-lg text-[11px] font-bold flex items-center gap-1 cursor-pointer transition-all ${
+                      activeVoiceField === "PRICE" && isListening
+                        ? "bg-red-600 text-white animate-pulse"
+                        : "bg-amber-100 hover:bg-amber-200 text-amber-900"
+                    }`}
+                    title="মুখে দাম বলুন"
+                  >
+                    <Mic className="w-3 h-3 text-[#D97706]" />
+                    <span>ভয়েস</span>
+                  </button>
+                </div>
                 <input
                   type="number"
                   required
@@ -514,6 +758,33 @@ export const FarmerDashboard: React.FC = () => {
                   className="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-xs sm:text-sm focus:ring-2 focus:ring-[#14532D] outline-hidden"
                 />
               </div>
+            </div>
+
+            {/* Description with Voice Input */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-bold text-stone-700">ফসলের গুণাগুণ ও বিস্তারিত বিবরণ:</label>
+                <button
+                  type="button"
+                  onClick={() => handleVoiceInputForField("DESCRIPTION")}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 cursor-pointer transition-all ${
+                    activeVoiceField === "DESCRIPTION" && isListening
+                      ? "bg-red-600 text-white animate-pulse"
+                      : "bg-amber-100 hover:bg-amber-200 text-amber-900"
+                  }`}
+                  title="মুখে বিবরণ বলুন"
+                >
+                  <Mic className="w-3 h-3 text-[#D97706]" />
+                  <span>ভয়েস ইনপুট</span>
+                </button>
+              </div>
+              <textarea
+                rows={2}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="যেমন: জামালপুর সদর থেকে সরাসরি তোলা বিষমুক্ত টাটকা ফসল..."
+                className="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-xs sm:text-sm focus:ring-2 focus:ring-[#14532D] outline-hidden"
+              />
             </div>
 
             {/* SMART PRICE SUGGESTION WIDGET - Explicitly requested */}
@@ -651,11 +922,47 @@ export const FarmerDashboard: React.FC = () => {
       {/* TAB 3: INVENTORY */}
       {activeSubTab === "INVENTORY" && (
         <div className="rounded-3xl bg-white p-6 sm:p-8 border border-stone-200 shadow-sm space-y-6">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-bold text-stone-900">আমার খামারের মোট ফসল ও ইনভেন্টরি</h3>
-            <span className="text-xs text-stone-500 font-mono">
-              অর্ডার হলে স্বয়ংক্রিয়ভাবে স্টক কমে যাবে
-            </span>
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h3 className="text-xl font-bold text-stone-900">আমার খামারের মোট ফসল ও ইনভেন্টরি</h3>
+              <p className="text-xs text-stone-500 font-mono mt-0.5">
+                অর্ডার হলে স্বয়ংক্রিয়ভাবে স্টক কমে যাবে
+              </p>
+            </div>
+
+            {/* Inventory Voice Search Bar */}
+            <div className="relative flex-1 max-w-md">
+              <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-3" />
+              <input
+                type="text"
+                placeholder="ইনভেন্টরি খুঁজুন (যেমন: আলু, ধান) অথবা মাইকে বলুন..."
+                value={inventorySearchQuery}
+                onChange={(e) => setInventorySearchQuery(e.target.value)}
+                className="w-full pl-10 pr-24 py-2 rounded-xl border border-stone-300 text-xs sm:text-sm font-medium focus:ring-2 focus:ring-[#14532D] outline-hidden"
+              />
+              <button
+                type="button"
+                onClick={() => handleVoiceInputForField("SEARCH")}
+                className={`absolute right-1.5 top-1 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-xs ${
+                  activeVoiceField === "SEARCH" && isListening
+                    ? "bg-red-600 text-white animate-pulse"
+                    : "bg-amber-500 hover:bg-amber-600 text-stone-950"
+                }`}
+                title="ভয়েসে মুখে বলে খুঁজুন"
+              >
+                {activeVoiceField === "SEARCH" && isListening ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
+                <span className="text-[11px]">{activeVoiceField === "SEARCH" && isListening ? "শুনছি..." : "ভয়েস সার্চ"}</span>
+              </button>
+            </div>
+
+            {inventorySearchQuery && (
+              <button
+                onClick={() => setInventorySearchQuery("")}
+                className="text-xs text-red-600 hover:underline font-bold"
+              >
+                ফিল্টার মুছুন
+              </button>
+            )}
           </div>
 
           <div className="overflow-x-auto">
@@ -671,7 +978,19 @@ export const FarmerDashboard: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100">
-                {products.filter((p) => p.farmerId === currentUser.id || currentUser.role === "ADMIN").map((prod) => (
+                {products
+                  .filter((p) => p.farmerId === currentUser.id || currentUser.role === "ADMIN")
+                  .filter((p) => {
+                    if (!inventorySearchQuery.trim()) return true;
+                    const q = inventorySearchQuery.toLowerCase();
+                    return (
+                      p.banglaName.toLowerCase().includes(q) ||
+                      p.name.toLowerCase().includes(q) ||
+                      p.variety.toLowerCase().includes(q) ||
+                      p.category.toLowerCase().includes(q)
+                    );
+                  })
+                  .map((prod) => (
                   <tr key={prod.id} className="hover:bg-stone-50/50 transition-colors">
                     <td className="py-3 px-4 flex items-center gap-3">
                       <img src={prod.images[0]} alt={prod.name} className="w-10 h-10 rounded-lg object-cover" />
@@ -717,9 +1036,144 @@ export const FarmerDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* OVERVIEW DEFAULT: INCLUDES AI DISEASE DETECTOR DIRECTLY ACCESSIBLE */}
+      {/* CLIMATE RISK & EARLY WARNING RADAR */}
+      {activeSubTab === "CLIMATE_ALERT" && (
+        <ClimateRiskAlert />
+      )}
+
+      {/* SOIL HEALTH LOG & NPK NUTRIENT ANALYTICS */}
+      {activeSubTab === "SOIL_HEALTH" && (
+        <SoilHealthLog />
+      )}
+
+      {/* COLD CHAIN LOGISTICS ROUTE VISUALIZATION */}
+      {activeSubTab === "COLD_CHAIN_ROUTE" && (
+        <ColdChainRouteVisualizer />
+      )}
+
+      {/* SEASONAL FARMING & FERTILIZER SCHEDULE GUIDANCE */}
+      {activeSubTab === "SEASONAL_GUIDE" && (
+        <SeasonalFarmingGuidance />
+      )}
+
+      {/* SMART INTEGRATED PEST MANAGEMENT (IPM) */}
+      {activeSubTab === "SMART_PEST" && (
+        <SmartPestManager />
+      )}
+
+      {/* YIELD FORECASTING */}
+      {activeSubTab === "YIELD_FORECAST" && (
+        <YieldForecaster />
+      )}
+
+      {/* REGIONAL PEST RADAR MAP */}
+      {activeSubTab === "PEST_MAP" && (
+        <RegionalPestMap />
+      )}
+
+      {/* 11-CROP AI DISEASE PATHOLOGY LAB */}
+      {activeSubTab === "DISEASE_VISION" && (
+        <DiseaseDetector />
+      )}
+
+      {/* KRISHIPAY FINTECH WALLET HUB (6 REVOLUTIONARY FEATURES) */}
+      {activeSubTab === "WALLET" && (
+        <KrishiPayWalletHub />
+      )}
+
+      {/* LIVE BACKEND ENGINES PORTAL (ESCROW, CRON SMS, AUCTION, AI DOCTOR) */}
+      {activeSubTab === "BACKEND_ENGINES" && (
+        <div className="space-y-6">
+          <BackendLiveEnginesPortal />
+        </div>
+      )}
+
+      {/* OVERVIEW DEFAULT: FEATURE CARDS + DISEASE DETECTOR */}
       {activeSubTab === "OVERVIEW" && (
         <div className="space-y-8">
+          {/* Quick Action Matrix for Low-Literate Farmers */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+            <button
+              onClick={() => setActiveModal("AUCTION")}
+              className="p-4 rounded-2xl bg-amber-500/10 hover:bg-amber-500/20 border-2 border-amber-500/40 text-stone-900 font-black text-xs flex flex-col items-center text-center gap-2 cursor-pointer transition-all shadow-xs group"
+            >
+              <Gavel className="w-6 h-6 text-amber-600 group-hover:scale-110 transition-transform" />
+              <span>⚖️ লাইভ নিলাম ও বিডিং</span>
+            </button>
+
+            <button
+              onClick={() => setActiveSubTab("WALLET")}
+              className="p-4 rounded-2xl bg-amber-50 hover:bg-amber-100 border border-amber-300 text-stone-800 font-bold text-xs flex flex-col items-center text-center gap-2 cursor-pointer transition-all shadow-2xs group"
+            >
+              <Wallet className="w-6 h-6 text-amber-700 group-hover:scale-110 transition-transform" />
+              <span>💳 কৃষি-পে ওয়ালেট (৬ ফিচার)</span>
+            </button>
+
+            <button
+              onClick={() => setActiveSubTab("CLIMATE_ALERT")}
+              className="p-4 rounded-2xl bg-red-50 hover:bg-red-100 border border-red-200 text-stone-800 font-bold text-xs flex flex-col items-center text-center gap-2 cursor-pointer transition-all shadow-2xs group"
+            >
+              <ShieldAlert className="w-6 h-6 text-red-600 group-hover:scale-110 transition-transform" />
+              <span>🚨 জলবায়ু দুর্যোগ সতর্কতা</span>
+            </button>
+
+            <button
+              onClick={() => setActiveSubTab("SOIL_HEALTH")}
+              className="p-4 rounded-2xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-stone-800 font-bold text-xs flex flex-col items-center text-center gap-2 cursor-pointer transition-all shadow-2xs group"
+            >
+              <FlaskConical className="w-6 h-6 text-emerald-700 group-hover:scale-110 transition-transform" />
+              <span>🧪 মাটির স্বাস্থ্য ও NPK লগ</span>
+            </button>
+
+            <button
+              onClick={() => setActiveSubTab("COLD_CHAIN_ROUTE")}
+              className="p-4 rounded-2xl bg-cyan-50 hover:bg-cyan-100 border border-cyan-200 text-stone-800 font-bold text-xs flex flex-col items-center text-center gap-2 cursor-pointer transition-all shadow-2xs group"
+            >
+              <Truck className="w-6 h-6 text-cyan-700 group-hover:scale-110 transition-transform" />
+              <span>🚚 কোল্ড চেইন ট্রাক ট্র্যাকিং</span>
+            </button>
+
+            <button
+              onClick={() => setActiveSubTab("SEASONAL_GUIDE")}
+              className="p-4 rounded-2xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-stone-800 font-bold text-xs flex flex-col items-center text-center gap-2 cursor-pointer transition-all shadow-2xs group"
+            >
+              <BookOpen className="w-6 h-6 text-emerald-700 group-hover:scale-110 transition-transform" />
+              <span>🌱 মৌসুমি সার ক্যালেন্ডার</span>
+            </button>
+
+            <button
+              onClick={() => setActiveSubTab("SMART_PEST")}
+              className="p-4 rounded-2xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-stone-800 font-bold text-xs flex flex-col items-center text-center gap-2 cursor-pointer transition-all shadow-2xs group"
+            >
+              <Bug className="w-6 h-6 text-[#D97706] group-hover:scale-110 transition-transform" />
+              <span>🛡️ স্মার্ট বালাই ব্যবস্থাপনা</span>
+            </button>
+
+            <button
+              onClick={() => setActiveSubTab("YIELD_FORECAST")}
+              className="p-4 rounded-2xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-stone-800 font-bold text-xs flex flex-col items-center text-center gap-2 cursor-pointer transition-all shadow-2xs group"
+            >
+              <TrendingUp className="w-6 h-6 text-blue-700 group-hover:scale-110 transition-transform" />
+              <span>📈 ফলন পূর্বাভাস ও আয়</span>
+            </button>
+
+            <button
+              onClick={() => setActiveSubTab("PEST_MAP")}
+              className="p-4 rounded-2xl bg-red-50 hover:bg-red-100 border border-red-200 text-stone-800 font-bold text-xs flex flex-col items-center text-center gap-2 cursor-pointer transition-all shadow-2xs group"
+            >
+              <Radar className="w-6 h-6 text-red-600 group-hover:scale-110 transition-transform" />
+              <span>🚨 পোকা আক্রমণ রাডার</span>
+            </button>
+
+            <button
+              onClick={() => setActiveSubTab("DISEASE_VISION")}
+              className="p-4 rounded-2xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-stone-800 font-bold text-xs flex flex-col items-center text-center gap-2 cursor-pointer transition-all shadow-2xs group"
+            >
+              <Sparkles className="w-6 h-6 text-purple-700 group-hover:scale-110 transition-transform" />
+              <span>🔬 ১১টি ফসলের এআই ল্যাব</span>
+            </button>
+          </div>
+
           <DiseaseDetector />
         </div>
       )}

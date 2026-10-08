@@ -12,7 +12,8 @@ import {
   X,
   User,
   ChevronDown,
-  ExternalLink
+  ExternalLink,
+  Radio
 } from "lucide-react";
 
 export const Navbar: React.FC = () => {
@@ -118,27 +119,23 @@ export const Navbar: React.FC = () => {
 
           {/* Quick Actions */}
           <div className="flex items-center gap-2 sm:gap-2.5">
-            
-            {/* Leadership & Institution Info */}
+            {/* Live Testing Lab Button */}
             <button
-              onClick={() => setActiveModal("ABOUT_DEVELOPER")}
-              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-50 text-stone-700 border border-stone-200 hover:bg-stone-100 text-xs font-semibold transition-colors cursor-pointer"
-              title="Architecture & Founder (JSTU)"
+              onClick={() => setActiveModal("BACKEND_ENGINES_MODAL")}
+              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-stone-900 text-xs font-bold border border-amber-300 transition-all cursor-pointer shadow-xs"
+              title="Open Real-time Escrow, Cron SMS, Auction, & AI Vision Testing Engines"
             >
-              <Award className="w-3.5 h-3.5 text-[#D97706]" />
-              <span>Arnica Tabassum · JSTU</span>
+              <span className="text-amber-600">⚡</span>
+              <span>{lang === "bn" ? "লাইভ ইঞ্জিন টেস্ট" : "Live Engines"}</span>
             </button>
 
-            {/* Security & Audit Dialog */}
             <button
-              onClick={() => setActiveModal("SECURITY_LAB")}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-50 text-stone-700 border border-stone-200 hover:bg-stone-100 text-xs font-semibold transition-colors cursor-pointer"
-              title="Cybersecurity & Audit Logs"
+              onClick={() => setActiveModal("LIVE_SMS_TEST")}
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-[#14532D] text-xs font-bold border border-emerald-300 transition-all cursor-pointer shadow-xs"
+              title="Test Live SMS Alerts & Gateway"
             >
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-700" />
-              <span className="hidden sm:inline">
-                {lang === "bn" ? "নিরাপত্তা ও অডিট" : "Security & Audit"}
-              </span>
+              <Radio className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
+              <span>{lang === "bn" ? "এসএমএস টেস্ট ল্যাব" : "SMS Test Lab"}</span>
             </button>
 
             {/* Language Toggle */}

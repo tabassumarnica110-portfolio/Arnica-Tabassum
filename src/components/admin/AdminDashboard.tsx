@@ -123,16 +123,6 @@ export const AdminDashboard: React.FC = () => {
             </div>
           </div>
         </div>
-
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setActiveModal("SECURITY_LAB")}
-            className="px-4 py-2.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-100 font-semibold text-xs flex items-center gap-2 border border-stone-700 shadow-xs transition-colors cursor-pointer"
-          >
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span>সাইবার সিকিউরিটি ও কমপ্লায়েন্স অডিট</span>
-          </button>
-        </div>
       </div>
 
       {/* 4 CORE KPI CARDS - As specified in brief */}
@@ -544,18 +534,12 @@ export const AdminDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-xl font-bold text-stone-900">
-                রিয়েল-টাইম সাইবার সিকিউরিটি অডিট ট্রেইল (Forensics & Compliance)
+                সিস্টেম অ্যাক্টিভিটি ও লেনদেন নিরাপত্তা অডিট লগ (System Activity Log)
               </h3>
               <p className="text-xs text-stone-500">
-                SQL ইনজেকশন ব্লক, XSS স্ক্রিপ্ট ফিল্টারিং, ব্রুট ফোর্স লকআউট ও RBAC ট্রাফিক রেকর্ড
+                প্ল্যাটফর্মের সমস্ত ক্রিপ্টোগ্রাফিক ট্রানজাকশন, এস্ক্রো ছাড় ও অনুমোদনের নিরাপদ অডিট রেকর্ড
               </p>
             </div>
-            <button
-              onClick={() => setActiveModal("SECURITY_LAB")}
-              className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold cursor-pointer"
-            >
-              অ্যাটাক সিমুলেটর রান করুন
-            </button>
           </div>
 
           <div className="overflow-x-auto">

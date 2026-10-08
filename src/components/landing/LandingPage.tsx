@@ -77,14 +77,6 @@ export const LandingPage: React.FC<{ onExploreShop: () => void; onFarmerPortal: 
                   <span>{lang === "bn" ? "কৃষক ড্যাশবোর্ড" : "Farmer Portal"}</span>
                   <ChevronRight className="w-4 h-4" />
                 </button>
-
-                <button
-                  onClick={() => setActiveModal("SECURITY_LAB")}
-                  className="px-4 py-3.5 rounded-xl bg-stone-50 hover:bg-stone-100 text-stone-700 font-semibold text-xs border border-stone-200 flex items-center gap-2 transition-colors cursor-pointer"
-                >
-                  <ShieldCheck className="w-4 h-4 text-emerald-700" />
-                  <span>{lang === "bn" ? "নিরাপত্তা ও অডিট" : "Security Architecture"}</span>
-                </button>
               </div>
 
               {/* Verified Trust Badges */}

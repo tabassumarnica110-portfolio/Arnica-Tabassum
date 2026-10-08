@@ -543,7 +543,55 @@ export const INITIAL_ORDERS: Order[] = [
       phone: "01799-887766",
       vehicleNumber: "Dhaka Metro Ta-11-9821",
     },
+    escrowId: "ESCROW-VAULT-94821",
+    escrowStatus: "IN_TRANSIT",
+    escrowGateway: "BKASH",
     createdAt: "2026-10-02T08:15:00Z",
+  },
+  {
+    id: "ord-102",
+    orderNumber: "KL-2026-7720",
+    buyerId: "buyer-2",
+    buyerName: "Pran Foods Ltd (B2B Bulk Hub)",
+    buyerPhone: "01712-445566",
+    deliveryAddress: "Tejgaon Industrial Area, Plot 14, Dhaka",
+    district: "Dhaka",
+    status: "SHIPPED",
+    items: [
+      {
+        productId: "prod-1",
+        productName: "Premium Balam & BR-28 Paddy",
+        banglaName: "ব্রি-২৮ চিকন ধান (লট #৮৯৪)",
+        quantityKg: 4000,
+        unitPrice: 32,
+        totalPrice: 128000,
+        farmerId: "farmer-1",
+        farmerName: "Alhaj Mokbul Hossain",
+        image: "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=400&q=80",
+      }
+    ],
+    itemsTotal: 128000,
+    deliveryFee: 4500,
+    platformFee: 2500,
+    grandTotal: 135000,
+    distanceKm: 148,
+    paymentMethod: "SSLCOMMERZ",
+    paymentStatus: "PAID",
+    escrowId: "ESCROW-VAULT-77219",
+    escrowStatus: "IN_TRANSIT",
+    escrowGateway: "SSLCOMMERZ",
+    trackingCheckpoints: [
+      { status: "NEW", timestamp: "সকাল ০৭:০০", note: "প্রাণের বাল্ক পারচেজ অর্ডার কৃষিলিঙ্ক সিস্টেমে গৃহীত" },
+      { status: "ACCEPTED", timestamp: "সকাল ০৭:৩০", note: "কৃষক মোকবুল হোসেন ৪,০০০ কেজি ধান প্রস্তুত করেছেন" },
+      { status: "PACKED", timestamp: "সকাল ০৯:১৫", note: "ডিজিটাল ওজন ও আর্দ্রতা (১২.৪%) গ্রেডিং সম্পন্ন" },
+      { status: "SHIPPED", timestamp: "সকাল ১০:০০", note: "কোল্ড ফ্রেইট ট্রাক ঢাকা তেজগাঁও অভিমুখে রওনা হয়েছে" }
+    ],
+    deliveryAgent: {
+      name: "সোহেল রানা (হেভি কোল্ড ফ্রেইট)",
+      phone: "01788-334411",
+      vehicleNumber: "ঢাকা মেট্রো-ট ১৪-৩৮২৯",
+    },
+    createdAt: "2026-10-02T07:00:00Z",
   }
 ];
 

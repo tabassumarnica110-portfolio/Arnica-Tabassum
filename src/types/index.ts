@@ -24,7 +24,15 @@ export type OrderStatus =
   | "DELIVERED" 
   | "CANCELLED";
 
-export type PaymentMethod = "BKASH" | "NAGAD" | "ROCKET" | "STRIPE" | "CASH_ON_DELIVERY";
+export type PaymentMethod = 
+  | "BKASH" 
+  | "SSLCOMMERZ"
+  | "NAGAD" 
+  | "ROCKET" 
+  | "STRIPE" 
+  | "CASH_ON_DELIVERY"
+  | "KRISHIPAY_ESCROW"
+  | "KRISHIPAY_GROUP_SPLIT";
 
 export interface Farmer {
   id: string;
@@ -155,6 +163,11 @@ export interface Order {
     phone: string;
     vehicleNumber: string;
   };
+  escrowId?: string;
+  escrowStatus?: "LOCKED_IN_VAULT" | "IN_TRANSIT" | "RELEASED" | "DISPUTED";
+  escrowGateway?: "BKASH" | "SSLCOMMERZ" | "STRIPE" | "KRISHIPAY";
+  escrowReleasedAt?: string;
+  escrowTrxId?: string;
   createdAt: string;
 }
 
