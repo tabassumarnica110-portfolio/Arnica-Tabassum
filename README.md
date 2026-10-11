@@ -1,8 +1,8 @@
 # 🌾 KrishiLink™ (কৃষিলিঙ্ক)
 ### Smart Direct Farmer-to-Buyer Supply Chain & Agricultural Intelligence Platform for Bangladesh
 **Developed by:** **Arnica Tabassum**  
-**Department:** **Computer Science & Engineering (CSE)**  
-**Institution:** **Jamalpur Science And Technology University (JSTU)**  
+**Department:** **Computer Science & Engineering(CSE)**  
+**Institution:** **Jamalpur Science And Technology University(JSTU)**  
 **Official Repository:** [https://github.com/tabassumarnica110-portfolio/Arnica-Tabassum](https://github.com/tabassumarnica110-portfolio/Arnica-Tabassum)  
 **Production Prototype URL:** [https://krishilink-jstu.vercel.app](https://krishilink-jstu.vercel.app)
 
@@ -84,7 +84,7 @@
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/tabassumarnica110-portfolio/Arnica-Tabassum.git
+git clone https://github.com/tabassumarnica110/
 cd Arnica-Tabassum
 
 # 2. Install dependencies
@@ -116,13 +116,13 @@ git branch -M main
 
 # Add all project source files
 git add .
-git commit -m "feat: KrishiLink - Complete Enterprise AgriTech Platform by Arnica Tabassum, JSTU"
+git commit -m "feat: KrishiLink -Complete Enterprise AgriTech Platform by Arnica Tabassum,JSTU"
 
 # Link to GitHub and push
-git remote add origin https://github.com/tabassumarnica110-portfolio/Arnica-Tabassum.git
+git remote add origin https://github.com/tabassumarnica110
 git push -u origin main
 ```
 
 ---
 
-**Developed with dedication for the farmers of Bangladesh by Arnica Tabassum, Department of CSE, Jamalpur Science and Technology University (JSTU).**
+**Developed with dedication for the farmers of Bangladesh by Arnica Tabassum,Department of CSE,Jamalpur Science and Technology University(JSTU).**
