@@ -1,7 +1,7 @@
 # 🌾 KrishiLink - JSTU | Smart Agriculture Marketplace
 
 > **Connecting Farmers Directly to Buyers — Eliminating Middlemen in Bangladesh**
-> Final Year Project | Jashore University of Science and Technology (JUST)
+> Project | Jamalpur Science and Technology University(JSTU) 
 
 [![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen?style=for-the-badge)](https://krishilink-jstu.vercel.app)
 [![Tech](https://img.shields.io/badge/Built%20With-Next.js%2015%20%7C%20Supabase-black?style=flat-square)]()
