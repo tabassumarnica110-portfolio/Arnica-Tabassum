@@ -70,3 +70,13 @@ Tools:         Git, VS Code, Figma
 model User { id, name, email, role [FARMER, BUYER, ADMIN], district }
 model Product { id, name, price, quantity, imageUrl, farmerId -> User }
 model Order { id, buyerId -> User, productId -> Product, status, totalAmount, paymentMethod }
+- **Relation:** User (1) -> Product (N), User (1) -> Order (N)
+
+*Prisma Schema location: `/prisma/schema.prisma`*
+
+### 🚀 Getting Started (For Sir/Reviewer)
+
+1. Clone the repo:
+```bash
+git clone https://github.com/tabassumarnica110-portfolio/Arnica-Tabassum.git
+cd Arnica-Tabassum
